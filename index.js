@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var util = require("util");
 var bower = require("bower");
 var commander = require("commander");
 var bluebird = require("bluebird");
@@ -147,8 +148,8 @@ var loadProjectInfo = function (p) {
           return project;
         })
         .catch(function (err) {
-          if (err.details && err.details.indexOf("Repository not found") != -1) {
-            log.warn("Failed to fetch " + name + " info: " + err.data.resolver.source + " does not exist");
+          if (err.code && err.code == "ENOTFOUND") {
+            log.warn("Failed to fetch " + name + " (ENOTFOUND)");
             return null;
           } else if (err.details && err.details.indexOf("Authentication failed") != -1) {
             log.warn("Failed to fetch " + name + " info: authentication failed for " + err.data.resolver.source);
@@ -274,7 +275,7 @@ if (commander.clean) {
         ledges.sort();
 
         var xs = _.flatten(ledges.map(function (dep) {
-          var related = _.unique(graph.edges
+          var related = _.uniq(graph.edges
             .filter(function (edge) { return edge[1] === dep; })
             .map(function (edge) { return edge[0]; })
             .filter(function (related) {
